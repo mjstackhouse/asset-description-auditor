@@ -1,54 +1,40 @@
-# React + TypeScript + Vite
+# Asset Description Auditor for Kontent.ai
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a tool designed for [Kontent.ai](https://kontent.ai/) users who want to quickly review and improve the quality of their asset metadata— specifically, the descriptions of their digital assets (like images, documents, and other files).
 
-Currently, two official plugins are available:
+## What does it do?
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Connects to your Kontent.ai environment** using your Environment ID and Management API Key (with "Read assets" permission).
+- **Fetches all assets** in your environment and displays them in a clear, filterable table.
+- **Shows which assets are missing descriptions** in any of your project's languages, helping you spot gaps in your metadata.
+- **Lets you filter by language** and see which assets are fully described, partially described, or missing descriptions.
+- **Provides an overview** of description completeness for each language, including percentages and totals.
+- **Allows you to export reports** (as Excel files) of both the overview and the detailed asset table, so you can share or work offline.
+- **Lets you search and filter assets** by title or description, and paginate through large asset libraries.
+- **Provides direct links to edit assets** in Kontent.ai, making it easy to update missing or incomplete descriptions.
 
-## Expanding the ESLint configuration
+## Who is it for?
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Content managers** and **editors** who want to ensure all assets are properly described for localization, accessibility, or SEO.
+- **Project owners** who need a quick audit of asset metadata completeness across multiple languages.
+- **Anyone working with Kontent.ai** who wants to improve the quality and findability of their digital assets.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## How does it help?
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- **Saves time:** No need to manually check each asset— see everything at a glance.
+- **Improves quality:** Quickly identify and fix missing or incomplete descriptions.
+- **Supports localization:** Ensure all assets are described in every required language.
+- **Easy reporting:** Export results for team review or compliance.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## How to use it
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+1. **Enter your Kontent.ai Environment ID and Management API Key.**
+2. Click **Get assets**.
+3. Review the overview and asset table to see which assets are missing descriptions.
+4. Use filters and search to focus on specific languages or assets.
+5. Click the edit icon to jump directly to an asset in Kontent.ai.
+6. Export reports as needed.
+
+---
+
+**Note:** Your API key must have the "Read assets" permission. No asset data is stored—everything runs in your browser.

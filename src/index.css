@@ -1,18 +1,26 @@
 @import "tailwindcss";
 
-:root {
+/* :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
-  font-weight: 400;
+  font-weight: 400; */
 
   /* color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424; */
 
-  font-synthesis: none;
+  /* font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+} */
+
+html {
+  font-family: 'Inter', sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 12px !important;
 }
 
 @theme {
@@ -24,6 +32,10 @@
   --red: rgb(219, 0, 0);
   --darker-red: rgb(169, 0, 0);
   --lighter-black: rgb(21, 21, 21);
+  --color-gray-100: rgb(243, 244, 246);
+  --color-gray-300: rgb(209, 213, 219);
+  --color-gray-400: rgb(156, 163, 175);
+  --color-gray-500: rgb(107, 114, 128);
 }
 
 
@@ -41,10 +53,47 @@
   padding: 0 22px;
 }
 
+button, a {
+  user-select: none;
+}
+
+.back-btn {
+  border-color: var(--purple);
+  border-style: solid;
+  border-width: 2px;
+  background-color: white;
+  color: var(--lighter-black);
+}
+
+.back-btn:hover {
+  background-color: var(--lighter-purple);
+  cursor: pointer;
+}
+
 .continue-btn {
   background-color: var(--purple);
   color: white;
 }
+
+.continue-btn:disabled, .continue-btn:disabled:hover {
+  color: rgb(226 232 240);
+  background-color: rgb(100 116 139);
+}
+
+.continue-btn:hover, .continue-btn:hover:enabled {
+  color: white;
+  background-color: var(--darker-purple);
+  cursor: pointer;
+}
+
+#api-key-label, #environment-id-label {
+  font-size: 16px;
+}
+
+input, .show-only-checkbox-label {
+  font-size: 14px;
+}
+
 
 /* a {
   font-weight: 500;
@@ -87,16 +136,34 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 } */
 
+.error {
+  display: none;
+}
+
+#loading-container {
+  display: none;
+}
+
 input[type="text"], input[type="date"], input[type="number"], select {
   flex-basis: 100%;
   border: 1px solid var(--color-gray-500);
   border-radius: 9999px;
   padding: 0.25rem 0.5rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.tooltip-icon {
-  border-radius: 4px;
-  margin-left: 0.35rem;
+input[type="text"]:hover, input[type="date"]:hover, input[type="number"]:hover, select:hover {
+  border-color: var(--orange);
+}
+
+input[type="text"]:focus, input[type="date"]:focus, input[type="number"]:focus, select:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 1px var(--orange);
+  outline: none;
+}
+
+.tooltip-icon, .tooltip-icon-small {
+  cursor: help;
 }
 
 .tooltip-icon {
@@ -104,12 +171,26 @@ input[type="text"], input[type="date"], input[type="number"], select {
   padding: 3px 4px;
 }
 
+.tooltip-icon-small {
+  width: 20px;
+  padding: 1px 2.25px;
+}
+
 .tooltip-icon:hover {
   background-color: rgba(21, 21, 21, 0.1);
 }
 
+.tooltip-icon, .tooltip-icon-small {
+  border-radius: 4px;
+  margin-left: 0.35rem;
+}
+
+.tooltip-icon:hover, .tooltip-icon-small:hover {
+  background-color: rgba(21, 21, 21, 0.1);
+}
+
 table {
-  border: 1px solid var(--color-gray-500);
+  /* border: 1px solid var(--color-gray-500); */
   border-collapse: collapse;
   width: 100%;
   table-layout: fixed;
@@ -122,9 +203,15 @@ tr:nth-child(even) {
 th, td {
   border-collapse: collapse;
   flex-basis: auto;
-  border: 0.5px solid var(--color-gray-500);
   padding: 10px;
   word-wrap: break-word;
+}
+
+.cell {
+  box-shadow:
+    inset 1px 0 0 0 var(--color-gray-500),   /* left */
+    inset 0 1px 0 0 var(--color-gray-500);   /* top */
+  box-sizing: border-box;
 }
 
 /* .cell {
@@ -134,6 +221,56 @@ th, td {
 .title-cell {
   border-right: 1px solid var(--color-gray-500);
 }
+
+.select__multi-value {
+  display: flex !important;
+  place-items: center !important;
+  vertical-align: middle !important;
+  justify-content: space-between !important;
+  font-size: 14px !important;
+  border-radius: 9999px !important;
+  border: 1px solid var(--color-gray-500) !important;
+  background-color: white !important;
+  padding: 0.25rem 0.5rem !important;
+  padding: 4px 8px !important;
+  color: var(--lighter-black) !important;
+  font-stretch: 100% !important;
+  font-kerning: auto !important;
+  height: 32px !important;
+  line-height: 18px !important;
+  text-decoration: none !important;
+  margin-right: 12px !important;
+}
+
+.select__multi-value__remove {
+  font-size: 20px;
+  color: var(--color-gray-400);
+  margin-left: 1rem;
+  line-height: 12px;
+  height: 12px;
+  vertical-align: text-top;
+}
+
+.app-header {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  background: var(--lighter-black);
+  color: white;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 2rem;
+  box-sizing: border-box;
+  /* background: linear-gradient(to right, var(--darker-purple), var(--orange) 75%); */
+}
+
 
 /* @media (prefers-color-scheme: light) {
   :root {
@@ -147,3 +284,133 @@ th, td {
     background-color: #f9f9f9;
   }
 } */
+
+/* Modern table styles */
+.table-modern {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: white;
+  /* box-shadow: 0 2px 8px rgba(21,21,21,0.06); */
+  table-layout: auto;
+}
+
+.table-modern th, .table-modern td {
+  padding: 20px 24px;
+  text-align: left;
+  font-size: 14px;
+  border: none;
+}
+
+.table-modern th {
+  background: transparent;
+  color: black;
+  font-weight: 700;
+  font-size: 16px;
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+.table-modern tr:nth-child(even) {
+  background: var(--color-gray-100);
+}
+
+/* Comprehensive hover rules for consistent background */
+.table-modern tbody tr:hover,
+.table-modern tbody tr:hover > td {
+  background: rgba(21, 21, 21, 0.1) !important;
+}
+
+/* Specific overrides for even rows */
+.table-modern tbody tr:nth-child(even):hover,
+.table-modern tbody tr:nth-child(even):hover > td {
+  background: rgba(21, 21, 21, 0.1) !important;
+}
+
+/* Loading animation keyframes for cross-browser compatibility */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Webkit-specific keyframes for Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+/* Utility class for hiding elements */
+.hidden {
+  display: none !important;
+}
+
+/* #loading-export {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid var(--orange);
+  width: 18px;
+  height: 18px;
+  margin-right: 0.75rem;
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 50%;
+  box-sizing: border-box;
+} */
+
+.loading-span {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid var(--orange);
+  width: 18px;
+  height: 18px;
+  margin-right: 0.75rem;
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  -webkit-animation: spin 1s linear infinite;
+  transform-origin: center;
+  -webkit-transform-origin: center;
+  box-sizing: border-box;
+}
+
+#loading-general {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid var(--orange);
+  width: 38px;
+  height: 38px;
+}
+
+#loading-general-text {
+  font-size: 14px;
+}
+
+/* Remove row/card effect from tbody tr and cell rounding */
+/* .table-modern tbody tr {
+  display: block;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(21,21,21,0.04);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.table-modern tbody tr td:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+.table-modern tbody tr td:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+} */
+
+#app-title {
+  background: var(--lighter-black);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-stretch: 100%;
+  font-kerning: auto;
+  line-height: 18px;
+  box-sizing: border-box;
+  font-stretch: 100%;
+  font-kerning: auto;
+  font-size: 12px !important;
+  line-height: 18px;
+  letter-spacing: 0.825852px;
+  text-decoration: none;
+}
