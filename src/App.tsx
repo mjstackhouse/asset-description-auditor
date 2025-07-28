@@ -541,18 +541,8 @@ function App() {
                     }),
                   }}
                 />
-                <div className='mt-2 w-full flex items-center justify-between mb-12'>
-                  <label className='flex items-center'>
-                    <input
-                      type='checkbox'
-                      checked={showOnlyMissing}
-                      onChange={handleShowOnlyMissing}
-                    />
-                    <span className='show-only-checkbox-label ml-2'>Show only assets missing descriptions in selected languages</span>
-        </label>
-            <div>
-                    <button type='button' onClick={handleSelectAllLanguages} className='btn continue-btn'>Select All</button>
-                  </div>
+                <div className='mt-2 w-full flex items-center justify-end mb-12'>
+                  <button type='button' onClick={handleSelectAllLanguages} className='btn continue-btn'>Select All</button>
                 </div>
               </div>
             </details>
@@ -654,49 +644,61 @@ function App() {
               <summary id='assets-summary' className='text-[16px] text-left font-bold cursor-pointer'>
                 <div style={{ marginLeft: '12px', display: 'inline' }}>Assets</div>
               </summary>
-              {/* Search input moved here, above the main asset table */}
-              <div className='mb-6 mt-4 flex items-center justify-end' style={{ marginLeft: '24px', position: 'relative' }}>
-                <div className='search-input-wrapper' style={{ position: 'relative', width: '100%' }}>
-                  <input
-                    type='text'
-                    placeholder='Search assets by title or description...'
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    className='search-input'
-                    style={{ width: '100%', height: '29px', padding: '3px 6px' }}
-                  />
-                  {searchQuery && (
-                    <button
-                      id='clear-search-btn'
-                      type='button'
-                      onClick={() => setSearchQuery('')}
-                      title='Clear search'
-                      aria-label='Clear search'
-                      style={{
-                        position: 'absolute',
-                        right: 8,
-                        top: 0,
-                        bottom: 0,
-                        margin: 'auto 0',
-                        height: '29px', // 21px height + 3px top + 3px bottom padding
-                        width: '32px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--color-gray-400)',
-                        fontSize: 20,
-                        cursor: 'pointer',
-                        lineHeight: 1,
-                        padding: 0,
-                      }}
-                      onMouseEnter={e => (e.currentTarget.style.color = 'var(--red)')}
-                      onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-gray-400)')}
-                    >
-                      ╳
-                    </button>
-                  )}
+              {/* Search input and filter controls moved here, above the main asset table */}
+              <div className='mb-6 mt-4' style={{ marginLeft: '24px' }}>
+                <div className='mb-4'>
+                  <div className='search-input-wrapper' style={{ position: 'relative', width: '100%' }}>
+                    <input
+                      type='text'
+                      placeholder='Search assets by title or description...'
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      className='search-input'
+                      style={{ width: '100%', height: '29px', padding: '3px 6px' }}
+                    />
+                    {searchQuery && (
+                      <button
+                        id='clear-search-btn'
+                        type='button'
+                        onClick={() => setSearchQuery('')}
+                        title='Clear search'
+                        aria-label='Clear search'
+                        style={{
+                          position: 'absolute',
+                          right: 8,
+                          top: 0,
+                          bottom: 0,
+                          margin: '2px 0 0 0',
+                          height: '29px', // 21px height + 3px top + 3px bottom padding
+                          width: '32px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--color-gray-400)',
+                          fontSize: 20,
+                          cursor: 'pointer',
+                          lineHeight: 1,
+                          padding: 0,
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--red)')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-gray-400)')}
+                      >
+                        ╳
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className='flex items-center justify-start'>
+                  <label className='flex items-center'>
+                    <input
+                      type='checkbox'
+                      checked={showOnlyMissing}
+                      onChange={handleShowOnlyMissing}
+                    />
+                    <span className='show-only-checkbox-label ml-2'>Show only assets missing descriptions in selected languages</span>
+                  </label>
                 </div>
               </div>
               {/* Table scrollable container */}
@@ -924,7 +926,10 @@ function App() {
                         disabled={currentPage === 1}
                         style={{ marginRight: 4 }}
                       >
-                        &#8592; Prev
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="mr-2 mb-0.5 inline size-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                        </svg>
+                        Previous
                       </button>
                       {/* Page numbers with ellipsis */}
                       {(() => {
@@ -1000,7 +1005,10 @@ function App() {
                         disabled={currentPage === computedPageCount}
                         style={{ marginLeft: 4 }}
                       >
-                        Next &#8594;
+                        Next
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="ml-2 mb-0.5 inline size-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                        </svg>
                       </button>
                     </>
                   )}
