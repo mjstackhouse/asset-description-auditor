@@ -513,9 +513,19 @@ function App() {
                         display: 'none'
                       },
                       '&::after': {
-                        content: '"╳"',
-                        fontSize: '20px',
-                        lineHeight: 1
+                        content: '""',
+                        display: 'block',
+                        width: '21px',
+                        height: '21px',
+                        margin: '0 0 1px 0',
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1' stroke='%23a3a3a3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 18 18 6M6 6l12 12' /%3E%3C/svg%3E")`,
+                        backgroundSize: 'contain',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'center',
+                        transition: 'background-image 0.2s'
+                      },
+                      ':hover::after': {
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1' stroke='%23db0000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 18 18 6M6 6l12 12' /%3E%3C/svg%3E")`
                       }
                     }),
                     noOptionsMessage: (base) => ({
@@ -534,9 +544,44 @@ function App() {
                         display: 'none'
                       },
                       '&::after': {
-                        content: '"╳"',
-                        fontSize: '20px',
-                        lineHeight: 1
+                        content: '""',
+                        display: 'block',
+                        width: '28px',
+                        height: '28px',
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 28 28' stroke-width='1' stroke='%23a3a3a3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M7 7l14 14M21 7l-14 14' /%3E%3C/svg%3E")`,
+                        backgroundSize: 'contain',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'center',
+                        transition: 'background-image 0.2s'
+                      },
+                      ':hover::after': {
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 28 28' stroke-width='1' stroke='%23db0000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M7 7l14 14M21 7l-14 14' /%3E%3C/svg%3E")`
+                      }
+                    }),
+                    dropdownIndicator: (base) => ({
+                      ...base,
+                      color: 'var(--color-gray-400)',
+                      cursor: 'pointer',
+                      transition: 'color 0.2s',
+                      ':hover': {
+                        color: 'var(--lighter-black)'
+                      },
+                      '& svg': {
+                        display: 'none'
+                      },
+                      '&::after': {
+                        content: '""',
+                        display: 'block',
+                        width: '24px',
+                        height: '24px',
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1' stroke='%23a3a3a3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E")`,
+                        backgroundSize: 'contain',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'center',
+                        transition: 'background-image 0.2s'
+                      },
+                      ':hover::after': {
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1' stroke='%23151515'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E")`
                       }
                     }),
                   }}
@@ -668,7 +713,7 @@ function App() {
                           right: 8,
                           top: 0,
                           bottom: 0,
-                          margin: '2px 0 0 0',
+                          margin: 'auto 0',
                           height: '29px', // 21px height + 3px top + 3px bottom padding
                           width: '32px',
                           display: 'flex',
@@ -685,7 +730,9 @@ function App() {
                         onMouseEnter={e => (e.currentTarget.style.color = 'var(--red)')}
                         onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-gray-400)')}
                       >
-                        ╳
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="size-7">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
                       </button>
                     )}
                   </div>
