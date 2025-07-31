@@ -165,6 +165,10 @@ label:has(input[type="checkbox"]) {
 .lang-header {
   white-space: nowrap;
   font-weight: 600;
+  position: sticky !important;
+  top: 0 !important;
+  background: white !important;
+  z-index: 5 !important;
 }
 
 /* Modern table styles */
@@ -178,15 +182,110 @@ label:has(input[type="checkbox"]) {
   /* transition: all 0.6s ease-in-out; */
 }
 
-/* Table container transitions */
-.table-container {
-  /* transition: all 0.6s ease-in-out; */
-  overflow-x: auto;
+/* Set minimum widths for language columns */
+.table-modern th:not(.first-col):not(.second-col) {
+  min-width: 200px !important;
+  white-space: nowrap !important;
 }
 
+.table-modern td.cell {
+  min-width: 200px !important;
+  /* max-width: 300px !important; */
+  word-wrap: break-word !important;
+  white-space: normal !important;
+  /* max-height: 4.5em !important; */
+  /* overflow: hidden !important; */
+  /* position: relative !important; */
+}
+
+.table-modern td.cell:hover::after {
+  display: none;
+}
+
+/* Table container transitions */
+.table-container {
+  /* Fixed height to prevent jumping */
+  height: calc(90vh - 120px);
+  min-height: 200px;
+  overflow-x: auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Make the table fill the remaining space */
+.table-container table {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Add subtle visual indicator for empty space when there are fewer results */
+.table-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.03));
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Show the indicator only when there are fewer than pageSize results */
+.table-container.has-few-results::after {
+  opacity: 1;
+}
+
+/* Custom scrollbar styling */
+.table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: var(--color-gray-400);
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-500);
+}
+
+.table-container::-webkit-scrollbar-corner {
+  background: var(--color-gray-100);
+}
+
+
+
+
 .table-modern td {
-  vertical-align: middle;
+  vertical-align: top;
   height: 100%;
+}
+
+/* Ensure all language description cells are top-aligned */
+.table-modern td.cell {
+  vertical-align: top;
+}
+
+/* Top-align thumbnails in the first column */
+.table-modern td.sticky-col.first-col {
+  vertical-align: top;
+  padding-top: 20px;
+}
+
+/* Keep title text top-aligned but with proper spacing */
+.table-modern td.sticky-col.second-col {
+  vertical-align: top;
+  padding-top: 20px;
 }
 
 /* Simple sticky columns */
@@ -211,6 +310,12 @@ label:has(input[type="checkbox"]) {
   width: 200px !important;
   min-width: 200px !important;
   max-width: 200px !important;
+}
+
+/* Ensure sticky columns in header have higher z-index */
+.table-modern th.first-col,
+.table-modern th.second-col {
+  z-index: 25 !important;
 }
 
 /* Background colors */
@@ -262,15 +367,10 @@ label:has(input[type="checkbox"]) {
   display: flex;
   width: 100%;
   align-items: center;
-  justify-content: flex-end;
-  position: relative;
-  gap: 0.5rem;
+  justify-content: space-between;
 }
 
 .pagination-center {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
 }
@@ -393,11 +493,14 @@ details > summary::marker {
 
 /* Basic table header styles */
 .table-modern th {
-  background: transparent;
+  background: white !important;
   color: black;
   font-weight: 700;
   font-size: 14px;
   border-bottom: 1px solid var(--color-gray-100);
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 5 !important;
 }
 
 /* Only even rows should be gray, odd rows and headings white */

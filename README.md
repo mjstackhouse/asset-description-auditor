@@ -1,6 +1,8 @@
 # Asset Description Auditor for Kontent.ai
 
-This is a tool designed for [Kontent.ai](https://kontent.ai/) users who want to quickly review and improve the quality of their asset metadata— specifically, the descriptions of their digital assets (like images, documents, and other files).
+This is a tool designed for [Kontent.ai](https://kontent.ai/) users who want to review and improve the quality of their asset metadata— specifically, the descriptions of their digital assets (like images, documents, and other files).
+
+![Preview of the tool](asset-description-auditor-demo.gif)
 
 ## What does it do?
 

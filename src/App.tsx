@@ -38,6 +38,8 @@ function App() {
   const [environmentIdErrorText, setEnvironmentIdErrorText] = useState<string>('');
   const [isExportOverviewLoading, setIsExportOverviewLoading] = useState(false);
   const [isExportAssetsLoading, setIsExportAssetsLoading] = useState(false);
+  const [pageBeforeSearch, setPageBeforeSearch] = useState<number>(1);
+
 
   function exportOverviewToExcel(overviewData: OverviewRow[], totalAssets?: number, fullyDescribed?: number) {
     if (!overviewData || overviewData.length === 0) return;
@@ -294,8 +296,39 @@ function App() {
   );
   const computedPageCount = Math.ceil(filteredAssetsByLanguage.length / pageSize);
 
+  // Track when search starts and manage page restoration
+  useEffect(() => {
+    if (debouncedQuery && debouncedQuery.trim() !== '') {
+      // Search is active - store current page and reset to page 1
+      setPageBeforeSearch(currentPage);
+      setCurrentPage(1);
+    } else if (debouncedQuery === '' && pageBeforeSearch !== 1) {
+      // Search was cleared - restore the page user was on before searching
+      setCurrentPage(pageBeforeSearch);
+    } else if (debouncedQuery === '') {
+      // Search was cleared but no previous page to restore, or user was already on page 1
+      setCurrentPage(1);
+    }
+  }, [debouncedQuery]);
+
+  // Auto-scroll to left when search returns no results
+  useEffect(() => {
+    const tableContainer = tableContainerRef.current;
+    if (!tableContainer) return;
+
+    // If there are no results and the user is scrolled horizontally, scroll back to left
+    if (paginatedAssets.length === 0 && tableContainer.scrollLeft > 0) {
+      tableContainer.scrollTo({
+        left: 0,
+        behavior: 'auto'
+      });
+    }
+  }, [paginatedAssets]);
+
+  // Reset page when languages or missing filter changes
   useEffect(() => {
     setCurrentPage(1);
+    setPageBeforeSearch(1);
   }, [selectedLanguages, showOnlyMissing]);
 
   // Select all and unselect all handlers
@@ -313,6 +346,7 @@ function App() {
     setSelectedLanguages([]);
     setShowOnlyMissing(false);
     setCurrentPage(1);
+    setPageBeforeSearch(1);
     setSearchQuery('');
     setDebouncedQuery('');
     setInitialTableHeight(null);
@@ -376,6 +410,74 @@ function App() {
       summary.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [currentPage]);
+
+  // Handle wheel events to prevent accidental table scrolling
+  useEffect(() => {
+    const tableContainer = tableContainerRef.current;
+    if (!tableContainer) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Only allow table scrolling if the user is explicitly trying to scroll the table
+      // or if the table content is actually scrollable
+      const isTableScrollable = tableContainer.scrollHeight > tableContainer.clientHeight;
+      const isScrollingDown = e.deltaY > 0;
+      const isScrollingUp = e.deltaY < 0;
+      
+      const isAtTop = tableContainer.scrollTop === 0;
+      const isAtBottom = tableContainer.scrollTop + tableContainer.clientHeight >= tableContainer.scrollHeight;
+      
+      // Allow table scrolling if:
+      // 1. Table is not scrollable (no need to prevent anything)
+      // 2. User is scrolling down and not at bottom, or scrolling up and not at top
+      // 3. User is scrolling horizontally (deltaX)
+      if (!isTableScrollable || 
+          (isScrollingDown && !isAtBottom) || 
+          (isScrollingUp && !isAtTop) ||
+          Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        return; // Allow the table scroll
+      }
+      
+      // When at boundaries, don't prevent the scroll - let it bubble up to the page
+      // This allows the page to scroll when the user hits the table boundaries
+      return; // Let the scroll event bubble up naturally
+    };
+
+    tableContainer.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      tableContainer.removeEventListener('wheel', handleWheel);
+    };
+  }, [paginatedAssets, languages, selectedLanguages]);
+
+  // Distribute row heights evenly when there are fewer than pageSize results
+  useEffect(() => {
+    const tableContainer = tableContainerRef.current;
+    if (!tableContainer || paginatedAssets.length >= pageSize) return;
+
+    const table = tableContainer.querySelector('table');
+    if (!table) return;
+
+    // Measure the actual header height dynamically
+    const thead = table.querySelector('thead');
+    const actualHeaderHeight = thead ? thead.offsetHeight : 60;
+    
+    // Calculate available height more precisely
+    const availableHeight = tableContainer.clientHeight - actualHeaderHeight;
+    const rowHeight = Math.max(availableHeight / paginatedAssets.length, 80); // Minimum 80px per row
+
+    // Set equal height on all table rows
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+      (row as HTMLElement).style.height = `${rowHeight}px`;
+    });
+
+    // Cleanup function to reset heights when component unmounts or dependencies change
+    return () => {
+      rows.forEach(row => {
+        (row as HTMLElement).style.height = '';
+      });
+    };
+  }, [paginatedAssets, pageSize]);
 
   return (
     <>
@@ -748,15 +850,16 @@ function App() {
                   </label>
                 </div>
               </div>
-              {/* Table scrollable container */}
+              {/* Table container with navigation buttons */}
               <div
-                className='table-container mb-6'
+                id='table-container'
+                className={`table-container mb-6 ${paginatedAssets.length < pageSize ? 'has-few-results' : ''}`}
                 ref={tableContainerRef}
                 style={{
                   width: 'calc(100% - 24px)',
                   marginLeft: '24px',
                   minHeight: debouncedQuery ? initialTableHeight || undefined : undefined,
-                  transition: 'min-height 0.3s'
+                  position: 'relative'
                 }}
               >
                 <table className='table-modern' style={{ minWidth: '1200px' }}>
@@ -827,7 +930,7 @@ function App() {
                                           fontWeight: 600,
                                           fontSize: '14px',
                                           color: 'var(--color-gray-500)',
-                                          background: 'var(--color-gray-100)',
+                                          background: 'rgb(248, 248, 248)',
                                           textTransform: 'uppercase',
                                           letterSpacing: '0.5px',
                                           userSelect: 'none',
@@ -853,13 +956,14 @@ function App() {
                                       height: '100%',
                                       width: '100%',
                                       fontWeight: 600,
-                                      fontSize: '14px',
+                                      fontSize: '11px',
                                       color: 'var(--color-gray-500)',
-                                      background: 'var(--color-gray-100)',
+                                                                                background: 'rgb(248, 248, 248)',
                                       textTransform: 'uppercase',
                                       letterSpacing: '0.5px',
                                       userSelect: 'none',
                                       textAlign: 'center',
+                                      padding: '0 2px'
                                     }}
                                   >
                                     <span>
@@ -889,7 +993,7 @@ function App() {
                                           // Executable and installer files
                                           if (type.includes('executable') || type.includes('x-executable') ||
                                               type.includes('msdownload') || type.includes('msi') ||
-                                              type.includes('apple-diskimage') || type.includes('android.package-archive')) return 'EXECUTABLE';
+                                              type.includes('apple-diskimage') || type.includes('android.package-archive')) return 'EXE';
                                           
                                           // Script and code files
                                           if (type.includes('javascript') || type.includes('ecmascript') ||
@@ -916,12 +1020,12 @@ function App() {
                                     </span>
                                     <span style={{
                                       fontWeight: 400,
-                                      fontSize: '11px',
+                                      fontSize: '10px',
                                       color: 'var(--color-gray-400)',
                                       textTransform: 'none',
-                                      marginTop: 2
+                                      lineHeight: 1.2
                                     }}>
-                                      No preview available
+                                      No preview
                                     </span>
                                   </div>
                                 )}
@@ -961,7 +1065,14 @@ function App() {
                     }
                   </tbody>
                 </table>
+                
+
               </div>
+              
+
+              
+
+              
               <div className='mt-4 mb-12 pagination-row'>
                 <div className='pagination-center'>
                   {computedPageCount > 1 && (
@@ -1062,7 +1173,6 @@ function App() {
                 </div>
                 <button
                   className='btn continue-btn'
-                  style={{ marginLeft: 'auto' }}
                   onClick={handleExportAssets}
                   disabled={isExportAssetsLoading}
                 >
