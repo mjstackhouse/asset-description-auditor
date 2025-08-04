@@ -573,6 +573,7 @@ function App() {
                     placeholder: (base) => ({
                       ...base,
                       fontSize: '14px',
+                      textAlign: 'left',
                     }),
                     singleValue: (base) => ({
                       ...base,
@@ -694,12 +695,39 @@ function App() {
               </div>
             </details>
             <hr className='assets-divider' />
-            {overviewData.length > 0 && (
-              <details open>
-                <summary className='text-[16px] text-left font-bold cursor-pointer'>
-                  <div style={{ marginLeft: '12px', display: 'inline' }}>Overview</div>
-                </summary>
+                        <details open>
+              <summary className='text-[16px] text-left font-bold cursor-pointer'>
+                <div style={{ marginLeft: '12px', display: 'inline' }}>Overview</div>
+              </summary>
+              {selectedLanguages.length === 0 ? (
                 <div
+                  style={{
+                    background: 'none',
+                    color: 'var(--color-gray-500)',
+                    borderRadius: '8px',
+                    border: '1px solid var(--color-gray-300)',
+                    padding: '24px 20px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    margin: '18px 24px 36px 24px',
+                    width: 'calc(100% - 24px)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                    lineHeight: 1.6,
+                    textAlign: 'left'
+                  }}
+                >
+                  <div style={{ fontSize: '16px', color: 'var(--color-gray-500)' }}>
+                    No languages selected
+                  </div>
+                  <div style={{ fontSize: '14px', color: 'var(--color-gray-500)' }}>
+                    Please select at least one language to view your asset overview
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div
                   style={{
                     background: 'none',
                     color: 'var(--lighter-black)',
@@ -781,15 +809,16 @@ function App() {
                   >
                     <span id='loading-export-overview' className={isExportOverviewLoading ? 'loading-span' : 'hidden'}></span>
                     Export Overview
-                  </button>
-            </div>
-              </details>
-            )}
+                                      </button>
+                  </div>
+                </>
+              )}
+            </details>
             <hr className='assets-divider' />
             {/* Main Asset Table Section */}
             <details open>
               <summary id='assets-summary' className='text-[16px] text-left font-bold cursor-pointer'>
-                <div style={{ marginLeft: '12px', display: 'inline' }}>Assets</div>
+                <div style={{ marginLeft: '12px', display: 'inline' }}>Asset details</div>
               </summary>
               {/* Search input and filter controls moved here, above the main asset table */}
               <div className='mb-6 mt-4' style={{ marginLeft: '24px' }}>
@@ -1058,7 +1087,7 @@ function App() {
                       : (
                         <tr>
                           <td colSpan={2 + (languages?.filter(lang => selectedLanguages.includes(lang.id)).length || 0)} style={{ textAlign: 'left', padding: '2.5rem 24px', color: 'var(--color-gray-500)', fontSize: 16 }}>
-                            No assets found matching your search.
+                            No assets found matching your search
                           </td>
                         </tr>
                       )
