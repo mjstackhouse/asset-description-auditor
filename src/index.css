@@ -400,7 +400,7 @@ th, td {
 } */
 
 #app-title {
-  background: var(--lighter-black);
+  background: black;
   font-weight: 700;
   text-transform: uppercase;
   font-stretch: 100%;

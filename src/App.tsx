@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useLayoutEffect, type ChangeEvent, type FormEvent } from 'react'
-import { AssetModels, createManagementClient, LanguageModels } from '@kontent-ai/management-sdk';
+import { AssetModels, createManagementClient, LanguageModels, ManagementClient } from '@kontent-ai/management-sdk';
 import './App.css'
 import Select from 'react-select';
 import * as XLSX from 'xlsx';
@@ -19,8 +19,11 @@ interface OverviewRow {
   isDefault: boolean;
 }
 
+let customAppSDK: any = null;
+
 function App() {
   const [environmentId, setEnvironmentId] = useState<string>('');
+  const [environmentIdInputValue, setEnvironmentIdInputValue] = useState<string>('');
   const [languages, setLanguages] = useState<Array<LanguageModels.LanguageModel>>();
   const [assets, setAssets] = useState<Array<AssetModels.Asset>>();
   const [filteredAssets, setFilteredAssets] = useState<Array<AssetModels.Asset>>();
@@ -32,13 +35,16 @@ function App() {
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
   const [initialTableHeight, setInitialTableHeight] = useState<number | null>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const isHandleSubmitLoadingRef = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState<string>('Fetching assets...');
-  const [apiKeyErrorText, setAPIKeyErrorText] = useState<string>('');
+  const [apiKeyErrorText, setApiKeyErrorText] = useState<string>('');
   const [environmentIdErrorText, setEnvironmentIdErrorText] = useState<string>('');
   const [isExportOverviewLoading, setIsExportOverviewLoading] = useState(false);
   const [isExportAssetsLoading, setIsExportAssetsLoading] = useState(false);
   const [pageBeforeSearch, setPageBeforeSearch] = useState<number>(1);
+  const [sdkResponse, setSdkResponse] = useState<any>(null);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
 
 
   function exportOverviewToExcel(overviewData: OverviewRow[], totalAssets?: number, fullyDescribed?: number) {
@@ -111,7 +117,7 @@ function App() {
   }
 
   // Add this function to handle Kontent.ai API errors (now inside App)
-  function handleAPIError(error: any) {
+  function handleApiError(error: any) {
     // Try to extract error code/message from Kontent.ai API error response
     let errorCode = error?.response?.data?.error || error?.code || error.errorCode;
     let message = error?.response?.data?.message || error?.message || 'An error occurred.';
@@ -142,47 +148,71 @@ function App() {
     }
   }
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
+  async function handleSubmit(event?: FormEvent, sdkRes?: any) {
+    if (event) event.preventDefault();
+
     setIsLoading(true);
     setLoadingText('Fetching assets...');
+    isHandleSubmitLoadingRef.current = true;
 
     const loadingContainer = document.getElementById('loading-container') as HTMLElement;
     if (loadingContainer) loadingContainer.style.display = 'flex';
 
-    const environmentIdInput = document.getElementById('environment-id') as HTMLInputElement;
     const keyInput = document.getElementById('api-key') as HTMLInputElement;
     const apiKeyError = document.getElementById('api-key-error') as HTMLElement;
     const environmentIdError = document.getElementById('environment-id-error') as HTMLElement;
 
-    if (environmentIdInput && keyInput) {
-      if (environmentIdInput.value !== '' && keyInput.value !== '') {
-
-        setEnvironmentId(environmentIdInput.value);
-      }
-      else {
-        if (environmentIdInput.value === '') {
-          if (loadingContainer) loadingContainer.style.display = 'none';
-          if (environmentIdError) environmentIdError.style.display = 'block';
-          setEnvironmentIdErrorText('Please provide an environment ID.');
-        }
-        
-        if (keyInput.value === '') {
-          if (loadingContainer) loadingContainer.style.display = 'none';
-          if (apiKeyError) apiKeyError.style.display = 'block';
-          setAPIKeyErrorText('Please provide an API key.');
-        }
-      }
+    let client: ManagementClient | null = null;
+    let envId: string = '';
+    let apiKey: string = '';
+    
+    // Handle environment ID - SDK takes priority, fallback to manual input
+    if (sdkRes && sdkRes.context?.environmentId) {
+      envId = sdkRes.context.environmentId;
+      setEnvironmentId(envId);
+    } 
+    else if (environmentIdInputValue.trim() !== '') {
+      envId = environmentIdInputValue;
+      setEnvironmentId(envId);
+    }
+    
+    // Handle API key - SDK takes priority, fallback to manual input
+    if (sdkRes && sdkRes.config?.managementApiKey && sdkRes.config.managementApiKey.trim() !== '') {
+      apiKey = sdkRes.config.managementApiKey;
+    } 
+    else if (keyInput && keyInput.value.trim() !== '') {
+      apiKey = keyInput.value;
+    }
+    // Validate inputs
+    if (!envId) {
+      if (loadingContainer) loadingContainer.style.display = 'none';
+      if (environmentIdError) environmentIdError.style.display = 'block';
+      setEnvironmentIdErrorText('Please provide an environment ID.');
+      setIsLoading(false);
+    }
+    else {
+      if (environmentIdError) environmentIdError.style.display = 'none';
     }
 
-    setEnvironmentId(environmentIdInput.value);
+    if (!apiKey) {
+      if (loadingContainer) loadingContainer.style.display = 'none';
+      if (apiKeyError) apiKeyError.style.display = 'block';
+      setApiKeyErrorText('Please provide an API key.');
+      setIsLoading(false);
+    }
+    else {
+      if (apiKeyError) apiKeyError.style.display = 'none';
+    }
 
-    const client = createManagementClient({
-      environmentId: environmentIdInput.value,
-      apiKey: keyInput.value
-    });
+    if (envId && apiKey) {
+      client = createManagementClient({
+        environmentId: envId,
+        apiKey: apiKey
+      });
+    }
 
-    client
+    if (client !== null) {
+      client
         .listAssets()
         .toAllPromise()
         .then((assetsResponse) => {
@@ -214,33 +244,108 @@ function App() {
                   setFilteredAssets(assetsResponse.data.items);
                   setSelectedLanguages(activeLanguages.map(lang => lang.id));
                   setIsLoading(false);
+                  isHandleSubmitLoadingRef.current = false;
                 }
               })
               .catch((error) => {
                 // Error handling for Languages endpoint
                 if (loadingContainer) loadingContainer.style.display = 'none';
-                handleAPIError(error);
+                handleApiError(error);
                 setIsLoading(false);
+                isHandleSubmitLoadingRef.current = false;
               });
           } 
           else {
             if (loadingContainer) loadingContainer.style.display = 'none';
-            handleAPIError('no assets');
+            handleApiError('no assets');
             setIsLoading(false);
+            isHandleSubmitLoadingRef.current = false;
           }
         })
         .catch((error) => {
           console.log('error in assets: ', error);
           // Error handling for Assets endpoint
           if (loadingContainer) loadingContainer.style.display = 'none';
-          handleAPIError(error);
+          handleApiError(error);
           setIsLoading(false);
+          isHandleSubmitLoadingRef.current = false;
         });
+    }
   }
 
   function handleShowOnlyMissing(e: ChangeEvent<HTMLInputElement>) {
     setShowOnlyMissing(e.target.checked);
   }
+
+  async function getContext() {
+    let response;
+
+    if (customAppSDK !== null) {
+      response = await customAppSDK.getCustomAppContext();
+
+      if (await response.isError) {
+        console.error({ errorCode: response.code, description: response.description});
+        setSdkLoaded(true); // Still mark as loaded even if there's an error
+      } 
+      else {
+        if (response.context.environmentId) {
+          setEnvironmentId(response.context.environmentId);
+        }
+
+        setSdkResponse({...response});
+        setSdkLoaded(true);
+
+        // Only auto-submit if both environment ID and API key are available
+        // AND we're not already loading (to avoid conflicts with manual form submission)
+        if (response.context.environmentId && response.config?.managementApiKey && response.config.managementApiKey.trim() !== '' && !isLoading) {
+          handleSubmit(undefined, response);
+        }
+      }
+    } else {
+      // If SDK is not available, still mark as loaded
+      setSdkLoaded(true);
+    }
+  };
+
+  useEffect(() => {
+    async function loadSDK() {
+      const loadingContainer = document.getElementById('loading-container') as HTMLElement;
+
+      if (window.self !== window.top) {
+        // Show loading immediately for custom app contexts to prevent flash
+        if (loadingContainer && !isHandleSubmitLoadingRef.current) {
+          setLoadingText('Checking for custom app context...');
+          loadingContainer.style.display = 'flex';
+        }
+        
+        try {
+          customAppSDK = await import('@kontent-ai/custom-app-sdk');
+          if (customAppSDK !== null) {
+            await getContext();
+          }
+        }
+        catch (error) {
+          console.error(error);
+        }
+        
+        // Hide loading when done
+        if (loadingContainer && !isHandleSubmitLoadingRef.current) {
+          loadingContainer.style.display = 'none';
+        }
+      }
+      else {
+        if (loadingContainer && !isHandleSubmitLoadingRef.current) {
+          loadingContainer.style.display = 'none';
+        }
+        console.log('Running outside of Kontent.ai, SDK not loaded');
+      }
+      
+      // Mark SDK as loaded regardless of outcome
+      setSdkLoaded(true);
+    }
+
+    loadSDK();
+  }, []);
 
   // Debounce the search input
   useEffect(() => {
@@ -339,7 +444,16 @@ function App() {
   }
 
   function handleBackBtn() {
-    setEnvironmentId('');
+    // Keep environment ID for standalone apps, clear it for custom apps
+    if (window.self === window.top) {
+      // Standalone mode - keep environment ID, clear API key
+      setEnvironmentIdInputValue(environmentId); // Set the input value via React state
+    } else {
+      // Custom app mode - clear environment ID (will be reloaded from SDK)
+      setEnvironmentId('');
+      setEnvironmentIdInputValue('');
+    }
+    
     setLanguages([]);
     setAssets([]);
     setFilteredAssets([]);
@@ -351,8 +465,23 @@ function App() {
     setDebouncedQuery('');
     setInitialTableHeight(null);
     setIsLoading(false);
-    setAPIKeyErrorText('');
+    setLoadingText('Fetching assets...');
+    setApiKeyErrorText('');
     setEnvironmentIdErrorText('');
+    setIsExportOverviewLoading(false);
+    setIsExportAssetsLoading(false);
+    setSdkLoaded(false);
+    
+    // Don't reset sdkResponse - SDK context should persist
+    // The getContext() call below will refresh it if needed
+    
+    // Re-load SDK context if running in Kontent.ai custom app
+    if (window.self !== window.top && customAppSDK !== null) {
+      getContext();
+    } else {
+      // For standalone apps, mark SDK as loaded immediately
+      setSdkLoaded(true);
+    }
   }
 
   // Calculate overview metrics for selected languages
@@ -479,10 +608,12 @@ function App() {
     };
   }, [paginatedAssets, pageSize]);
 
-  return (
+    return (
     <>
-      <p id='app-title' className='absolute top-0 right-0 left-0 py-4 pl-[3rem] text-left text-white z-10'>Asset description auditor</p>
-      {/* <h1 className='app-header'>Asset description auditor</h1> */}
+      {sdkLoaded && (
+        <p id='app-title' className='absolute top-0 right-0 left-0 py-4 pl-[3rem] text-left text-white z-10'>Asset description auditor</p>
+      )}
+ 
     <div>
       <div id='loading-container' className='basis-full fixed bg-white z-10 top-0 bottom-0 left-0 right-0 flex place-items-center'>
         <div className='basis-full flex flex-wrap'>
@@ -493,28 +624,66 @@ function App() {
         </div>
       </div>
       {
-        (!languages || languages.length === 0) && (
-          <form onSubmit={(e) => handleSubmit(e)} className='basis-full flex flex-wrap place-content-start'>
-            <div className='basis-full relative flex flex-wrap mb-6'>
-              <label id='environment-id-label' htmlFor='environment-id' className='basis-full text-left mb-3 font-bold focus:border-color-(--orange)'>
-                Environment ID
-              <span className='tooltip-icon' title="The environment ID of the environment where your assets are located. This can be found under 'Environment settings', or as the value in the URL as shown: app.kontent.ai/<environment-id>.">ⓘ</span>
-              </label>
-                <input type='text' id='environment-id' name='environment-id' />
-                <p id='environment-id-error' className='error absolute bg-(--red) text-white px-2 py-[0.25rem] rounded-lg top-0 left-[160px]'>
-                {environmentIdErrorText}
-                </p>
-            </div>
-            <div className='basis-full relative flex flex-wrap'>
-              <label id='api-key-label' htmlFor='api-key' className='basis-full text-left mb-3 font-bold focus:border-color-(--orange)'>
-                Management API Key
-                  <span className='tooltip-icon' title="You can find your Management API key from the left-hand navigation bar under 'Project settings' -> 'API keys'. Be sure that it has the 'Read assets' permission selected.">ⓘ</span>
-              </label>
-                <input type='text' id='api-key' name='api-key' className='mb-6' />
-                <p id='api-key-error' className='error absolute bg-(--red) text-white px-2 py-[0.25rem] rounded-lg top-0 left-[230px]'>
-                {apiKeyErrorText}
-                </p>
-            </div>
+        (!languages || languages.length === 0) && sdkLoaded && (
+          <form onSubmit={(e) => handleSubmit(e, sdkResponse)} className='basis-full flex flex-wrap place-content-start'>
+            {
+              !sdkResponse?.context?.environmentId ? (
+                <div className='basis-full relative flex flex-wrap mb-6'>
+                  <label id='environment-id-label' htmlFor='environment-id' className='basis-full text-left mb-3 font-bold focus:border-color-(--orange)'>
+                    Environment ID
+                  <span className='tooltip-icon' title="The environment ID of the environment where your assets are located. This can be found under 'Environment settings', or as the value in the URL as shown: app.kontent.ai/<environment-id>.">ⓘ</span>
+                  </label>
+                  <input 
+                    type='text' 
+                    id='environment-id' 
+                    name='environment-id' 
+                    value={environmentIdInputValue}
+                    onChange={(e) => setEnvironmentIdInputValue(e.target.value)}
+                  />
+                  <p id='environment-id-error' className='error absolute bg-(--red) text-white px-2 py-[0.25rem] rounded-lg top-0 left-[160px]'>
+                    {environmentIdErrorText}
+                  </p>
+                </div>
+              ) : (
+                // Environment ID from SDK context
+                <div className='basis-full relative flex flex-wrap mb-6'>
+                  <label id='environment-id-label' className='basis-full text-left mb-3 font-bold'>
+                    Environment ID
+                    <span className='tooltip-icon' title="Environment ID retrieved from the custom app's context">ⓘ</span>
+                  </label>
+                  <div 
+                    className='basis-full text-left text-sm mb-2'
+                    style={{
+                      border: '1px solid var(--color-gray-300)',
+                      borderRadius: '9999px',
+                      padding: '0.25rem 0.5rem',
+                      backgroundColor: 'var(--color-gray-100)',
+                      color: 'var(--color-gray-500)',
+                      fontSize: '14px',
+                      minHeight: '32px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    {sdkResponse.context.environmentId}
+                  </div>
+                </div>
+              )
+            }
+            {
+              (!sdkResponse?.config?.hasOwnProperty('managementApiKey') || !sdkResponse?.config?.managementApiKey || sdkResponse?.config?.managementApiKey.trim() === '') && (
+                <div className='basis-full relative flex flex-wrap'>
+                  <label id='api-key-label' htmlFor='api-key' className='basis-full text-left mb-3 font-bold focus:border-color-(--orange)'>
+                    Management API Key
+                      <span className='tooltip-icon' title="You can find your Management API key from the left-hand navigation bar under 'Project settings' -> 'API keys'. Be sure that it has the 'Read assets' permission selected.">ⓘ</span>
+                  </label>
+                    <input type='text' id='api-key' name='api-key' className='mb-6' />
+                    <p id='api-key-error' className='error absolute bg-(--red) text-white px-2 py-[0.25rem] rounded-lg top-0 left-[230px]'>
+                    {apiKeyErrorText}
+                    </p>
+                </div>
+              )
+            }
             <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', marginBottom: '1rem' }}>
               <button type='submit' className='btn continue-btn' disabled={isLoading}>
                 Get assets
@@ -1210,12 +1379,23 @@ function App() {
                 </button>
               </div>
             </details>
-            <hr className='assets-divider' />
-            <div className='w-full flex justify-start mt-12 mb-12'>
-              <button id='back-btn' type='button' className='btn back-btn' onClick={() => handleBackBtn()}>
-                Change settings
-              </button>
-            </div>
+            {(window.self === window.top || 
+              !sdkResponse?.context?.environmentId || 
+              !sdkResponse?.config?.managementApiKey || 
+              sdkResponse?.config?.managementApiKey.trim() === '') && (
+                <hr className='assets-divider' />
+            )}
+            {/* Only show "Change settings" button if manual input is needed or configuration is incomplete */}
+            {(window.self === window.top || 
+              !sdkResponse?.context?.environmentId || 
+              !sdkResponse?.config?.managementApiKey || 
+              sdkResponse?.config?.managementApiKey.trim() === '') && (
+              <div className='w-full flex justify-start mt-12 mb-12'>
+                <button id='back-btn' type='button' className='btn back-btn' onClick={() => handleBackBtn()}>
+                  Change settings
+                </button>
+              </div>
+            )}
           </>
         )}
     </div>
