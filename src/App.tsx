@@ -45,6 +45,8 @@ function App() {
   const [pageBeforeSearch, setPageBeforeSearch] = useState<number>(1);
   const [sdkResponse, setSdkResponse] = useState<any>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [apiKeyInvalid, setApiKeyInvalid] = useState(false);
+  const [apiKeyErrorFromConfig, setApiKeyErrorFromConfig] = useState(false);
 
 
   function exportOverviewToExcel(overviewData: OverviewRow[], totalAssets?: number, fullyDescribed?: number) {
@@ -117,7 +119,7 @@ function App() {
   }
 
   // Add this function to handle Kontent.ai API errors (now inside App)
-  function handleApiError(error: any) {
+  function handleApiError(error: any, sdkRes?: any) {
     // Try to extract error code/message from Kontent.ai API error response
     let errorCode = error?.response?.data?.error || error?.code || error.errorCode;
     let message = error?.response?.data?.message || error?.message || 'An error occurred.';
@@ -125,9 +127,26 @@ function App() {
     if (typeof errorCode === 'number') {
       const apiKeyError = document.getElementById('api-key-error');
       
-      if (apiKeyError) {
-        apiKeyError.style.display = 'block';
-        apiKeyError.innerText = 'Invalid or unauthorized API key. Please check your API key and its permissions.';
+      // Check if this is a custom app with API key in config
+      if (sdkRes && sdkRes.config?.managementApiKey && sdkRes.config.managementApiKey.trim() !== '') {
+        // API key was provided in config but is invalid
+        setApiKeyErrorFromConfig(true);
+        setApiKeyInvalid(false); // Don't show manual input
+        setApiKeyErrorText('Invalid or unauthorized API key. Please check your API key and its permissions.');
+        if (apiKeyError) apiKeyError.style.display = 'block';
+      }
+      else {
+        // Regular API key error for manual input
+        
+        
+        if (apiKeyError) {
+          setApiKeyErrorText('Invalid or unauthorized API key. Please check your API key and its permissions.');
+          apiKeyError.style.display = 'block';
+          // apiKeyError.innerText = 'Invalid or unauthorized API key. Please check your API key and its permissions.';
+        }
+        
+        setApiKeyInvalid(true);
+        setApiKeyErrorFromConfig(false);
       }
     }
 
@@ -135,15 +154,17 @@ function App() {
 
     if (error === 'no assets') {
       if (environmentIdError) {
+        setEnvironmentIdErrorText('Your environment contains no assets. Please choose a different environment.');
         environmentIdError.style.display = 'block';
-        environmentIdError.innerText = 'Your environment contains no assets. Please choose a different environment.';
+        // environmentIdError.innerText = 'Your environment contains no assets. Please choose a different environment.';
       }
     }
 
     if (errorCode === 400 || errorCode === 403 || errorCode === 404 || message === 'Network Error') {
       if (environmentIdError) {
+        setEnvironmentIdErrorText('Invalid environment ID. Please check your environment ID.');
         environmentIdError.style.display = 'block';
-        environmentIdError.innerText = 'Invalid environment ID. Please check your environment ID.';
+        // environmentIdError.innerText = 'Invalid environment ID. Please check your environment ID.';
       }
     }
   }
@@ -245,31 +266,33 @@ function App() {
                   setSelectedLanguages(activeLanguages.map(lang => lang.id));
                   setIsLoading(false);
                   isHandleSubmitLoadingRef.current = false;
+                  setApiKeyInvalid(false); // Reset invalid state on success
+                  setApiKeyErrorFromConfig(false); // Reset config error state on success
                 }
               })
               .catch((error) => {
                 // Error handling for Languages endpoint
                 if (loadingContainer) loadingContainer.style.display = 'none';
-                handleApiError(error);
+                handleApiError(error, sdkRes);
                 setIsLoading(false);
                 isHandleSubmitLoadingRef.current = false;
               });
           } 
           else {
             if (loadingContainer) loadingContainer.style.display = 'none';
-            handleApiError('no assets');
+            handleApiError('no assets', sdkRes);
             setIsLoading(false);
             isHandleSubmitLoadingRef.current = false;
           }
         })
-        .catch((error) => {
-          console.log('error in assets: ', error);
-          // Error handling for Assets endpoint
-          if (loadingContainer) loadingContainer.style.display = 'none';
-          handleApiError(error);
-          setIsLoading(false);
-          isHandleSubmitLoadingRef.current = false;
-        });
+                  .catch((error) => {
+            console.log('error in assets: ', error);
+            // Error handling for Assets endpoint
+            if (loadingContainer) loadingContainer.style.display = 'none';
+            handleApiError(error, sdkRes);
+            setIsLoading(false);
+            isHandleSubmitLoadingRef.current = false;
+          });
     }
   }
 
@@ -471,6 +494,8 @@ function App() {
     setIsExportOverviewLoading(false);
     setIsExportAssetsLoading(false);
     setSdkLoaded(false);
+    setApiKeyInvalid(false); // Reset invalid state when changing settings
+    setApiKeyErrorFromConfig(false); // Reset config error state when changing settings
     
     // Don't reset sdkResponse - SDK context should persist
     // The getContext() call below will refresh it if needed
@@ -671,7 +696,8 @@ function App() {
               )
             }
             {
-              (!sdkResponse?.config?.hasOwnProperty('managementApiKey') || !sdkResponse?.config?.managementApiKey || sdkResponse?.config?.managementApiKey.trim() === '') && (
+              // Show API key input for manual entry or when invalid from manual input
+              (!sdkResponse?.config?.hasOwnProperty('managementApiKey') || !sdkResponse?.config?.managementApiKey || sdkResponse?.config?.managementApiKey.trim() === '' || apiKeyInvalid) && (
                 <div className='basis-full relative flex flex-wrap'>
                   <label id='api-key-label' htmlFor='api-key' className='basis-full text-left mb-3 font-bold focus:border-color-(--orange)'>
                     Management API Key
@@ -684,10 +710,45 @@ function App() {
                 </div>
               )
             }
+            {
+              // Show disabled API key field when invalid from config
+              apiKeyErrorFromConfig && (
+                <div className='basis-full relative flex flex-wrap mb-6'>
+                  <label id='api-key-label' className='basis-full text-left mb-3 font-bold'>
+                    Management API Key
+                    <span className='tooltip-icon' title="API key retrieved from custom app configuration">ⓘ</span>
+                  </label>
+                  <div 
+                    className='basis-full text-left text-sm mb-2'
+                    style={{
+                      border: '1px solid var(--color-gray-300)',
+                      borderRadius: '9999px',
+                      padding: '0.25rem 0.5rem',
+                      backgroundColor: 'var(--color-gray-100)',
+                      color: 'var(--color-gray-500)',
+                      fontSize: '14px',
+                      minHeight: '32px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    API key configured in custom app settings
+                  </div>
+                  <p id='api-key-error' className='error absolute bg-(--red) text-white px-2 py-[0.25rem] rounded-lg top-0 left-[230px]'>
+                    {apiKeyErrorText}
+                    </p>
+                  <p className='error bg-(--red) text-white px-2 py-[0.25rem] rounded-lg mt-2'>
+                    The API key in your custom app configuration is invalid. Please update it in Kontent.ai Environment settings &gt; Custom apps.
+                  </p>
+                </div>
+              )
+            }
             <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', marginBottom: '1rem' }}>
-              <button type='submit' className='btn continue-btn' disabled={isLoading}>
-                Get assets
-              </button>
+              {!apiKeyErrorFromConfig && (
+                <button type='submit' className='btn continue-btn' disabled={isLoading}>
+                  Get assets
+                </button>
+              )}
             </div>
           </form>
         )
