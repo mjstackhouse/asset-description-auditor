@@ -233,13 +233,39 @@ label:has(input[type="checkbox"]) * {
 
 /* Table container transitions */
 .table-container {
-  /* Fixed height to prevent jumping */
-  height: calc(90vh - 120px);
+  /* Conservative height calculation that ensures comfortable spacing for all elements */
+  height: calc(90vh - 200px);
   min-height: 200px;
   overflow-x: auto;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-height: 800px) {
+  .table-container {
+    height: calc(85vh - 180px);
+  }
+  
+  /* Reduce checkbox margin on smaller screens */
+  .asset-details-controls {
+    margin-bottom: 2.5rem !important; /* 40px instead of 64px */
+  }
+}
+
+@media (max-height: 600px) {
+  .table-container {
+    height: calc(80vh - 160px);
+  }
+  
+  /* Further reduce checkbox margin on very small screens */
+  .asset-details-controls {
+    margin-bottom: 2rem !important; /* 32px instead of 64px */
+  }
 }
 
 /* Make the table fill the remaining space */

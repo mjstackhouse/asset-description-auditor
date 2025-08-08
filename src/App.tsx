@@ -1049,7 +1049,7 @@ function App() {
                 <div style={{ marginLeft: '28px', display: 'inline' }}>Asset details</div>
               </summary>
               {/* Search input and filter controls moved here, above the main asset table */}
-              <div className='mb-16 mt-4' style={{ marginLeft: '24px' }}>
+              <div className='mb-16 mt-4 asset-details-controls' style={{ marginLeft: '24px' }}>
                 <div className='mb-4'>
                   <div className='search-input-wrapper' style={{ position: 'relative', width: '100%' }}>
                     <input
@@ -1330,7 +1330,7 @@ function App() {
               
 
               
-              <div className='mt-4 mb-12 pagination-row'>
+              <div className='mt-4 mb-16 pagination-row'>
                 <div className='pagination-center'>
                   {computedPageCount > 1 && (
                     <>
