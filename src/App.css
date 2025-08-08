@@ -40,12 +40,10 @@
   content: '';
   display: block;
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -2px;
-  height: 3px;
+  left: 3px;
+  right: 3px;
+  height: 2px;
   background: var(--orange);
-  border-radius: 2px 2px 0 0;
 }
 
 .pagination span {
@@ -71,8 +69,8 @@
   font-size: 18px;
   text-decoration: none;
   z-index: 2;
-  /* Adjust left and top as needed for alignment */
 }
+
 .asset-edit-link-abs:hover {
   background: rgba(21,21,21,0.08);
 }
@@ -93,7 +91,6 @@
   right: -12px;
   background: white;
   border-radius: 4px;
-  /* border: 1px solid var(--lighter-black); */
   width: 28px;
   height: 28px;
   display: flex;
@@ -127,14 +124,42 @@
   min-height: 60px; /* Should match or slightly exceed table row height */
 }
 
-/* .table-modern tr:hover > .title-cell {
-  background: var(--color-gray-300) !important;
-} */
-
 /* Purple color for the 'Show only assets...' checkbox */
 .table-modern input[type="checkbox"],
 .mb-6 input[type="checkbox"] {
-  accent-color: var(--purple);
+  accent-color: var(--purple) !important;
+  border: 1px solid var(--color-gray-400) !important;
+  border-radius: 4px !important;
+  transition: border-color 0.2s !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  width: 16px !important;
+  height: 16px !important;
+  background-color: white !important;
+  position: relative !important;
+  cursor: pointer !important;
+}
+
+.table-modern input[type="checkbox"]:checked,
+.mb-6 input[type="checkbox"]:checked {
+  background-color: var(--purple) !important;
+  border-color: var(--purple) !important;
+}
+
+.table-modern input[type="checkbox"]:checked::after,
+.mb-6 input[type="checkbox"]:checked::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 16px !important;
+  height: 16px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='3' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m4.5 12.75 6 6 9-13.5' /%3E%3C/svg%3E") !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
 }
 
 /* Make checkbox labels show pointer cursor on hover */
@@ -146,6 +171,11 @@ label:has(input[type="checkbox"]):hover, label > input[type="checkbox"]:hover {
 
 label:has(input[type="checkbox"]) {
   padding: 4px 8px;
+  user-select: none;
+}
+
+label:has(input[type="checkbox"]) * {
+  user-select: none;
 }
 
 .assets-divider {
@@ -153,6 +183,11 @@ label:has(input[type="checkbox"]) {
   border-top: 1px solid var(--color-gray-100);
   margin: 0;
   width: 100%;
+}
+
+/* Darker divider for use within containers/bordered areas */
+.assets-divider.within-container {
+  border-top-color: var(--color-gray-300);
 }
 
 .form-divider {
@@ -177,9 +212,7 @@ label:has(input[type="checkbox"]) {
   border-collapse: separate;
   border-spacing: 0;
   background: white;
-  /* box-shadow: 0 2px 8px rgba(21,21,21,0.06); */
   table-layout: auto;
-  /* transition: all 0.6s ease-in-out; */
 }
 
 /* Set minimum widths for language columns */
@@ -190,12 +223,8 @@ label:has(input[type="checkbox"]) {
 
 .table-modern td.cell {
   min-width: 200px !important;
-  /* max-width: 300px !important; */
   word-wrap: break-word !important;
   white-space: normal !important;
-  /* max-height: 4.5em !important; */
-  /* overflow: hidden !important; */
-  /* position: relative !important; */
 }
 
 .table-modern td.cell:hover::after {
@@ -262,9 +291,6 @@ label:has(input[type="checkbox"]) {
 .table-container::-webkit-scrollbar-corner {
   background: var(--color-gray-100);
 }
-
-
-
 
 .table-modern td {
   vertical-align: top;
@@ -375,19 +401,53 @@ label:has(input[type="checkbox"]) {
   align-items: center;
 }
 
+details > summary:hover {
+  background: var(--hover-gray);
+}
+
+summary {
+  list-style: none; /* Removes the default marker in most browsers */
+}
+
+summary::-webkit-details-marker {
+  display: none; /* Hides the marker in WebKit-based browsers like Chrome and Safari */
+}
+
 details > summary {
   transition: background 0.2s;
   padding: 12px 8px;
   height: 100%;
   box-sizing: border-box;
-}
-details > summary:hover {
-  background: var(--lighter-orange);
+  position: relative;
+  cursor: pointer;
+  user-select: none;
 }
 
-details > summary::marker {
-  color: var(--orange);
-  margin-right: 8px;
+details > summary * {
+  user-select: none;
+}
+
+details > summary::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) rotate(0deg);
+  width: 24px;
+  height: 24px;
+  margin-left: 4px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1' stroke='%23151515'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: transform 0.2s ease;
+  color: var(--lighter-black);
+  pointer-events: none;
+  z-index: 1;
+}
+
+details[open] > summary::before {
+  transform: translateY(-50%) rotate(180deg);
 }
 
 .thumbnail-header {
@@ -488,7 +548,6 @@ details > summary::marker {
   letter-spacing: 0.02em;
   margin-bottom: 2rem;
   box-sizing: border-box;
-  /* background: linear-gradient(to right, var(--darker-purple), var(--orange) 75%); */
 }
 
 /* Basic table header styles */
@@ -587,4 +646,33 @@ label:has(input[type="checkbox"]):hover, label > input[type="checkbox"]:hover {
 
 .select__control {
   background-color: rgb(243, 243, 243) !important;
+}
+
+/* Ensure search input uses consistent gray styling */
+.search-input {
+  border: 1px solid var(--color-gray-400) !important;
+  border-radius: 9999px !important;
+  padding: 0.25rem 0.5rem 0.25rem 2.5rem !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23a3a3a3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z' /%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 8px center !important;
+  background-size: 18px !important;
+}
+
+/* Prevent text selection on placeholder text */
+.search-input::placeholder {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+.search-input:hover {
+  border-color: var(--lighter-black) !important;
+}
+
+.search-input:focus {
+  border-color: var(--lighter-black) !important;
+  outline: none !important;
 }

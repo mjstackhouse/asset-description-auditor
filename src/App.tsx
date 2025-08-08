@@ -755,10 +755,9 @@ function App() {
       }
         {(assets && assets.length > 0 && languages && languages.length > 0) && (
           <>
-            {/* <hr className='form-divider' /> */}
             <details open>
               <summary className='text-[16px] text-left font-bold cursor-pointer'>
-                <div style={{ marginLeft: '12px', display: 'inline' }}>Languages</div>
+                <div style={{ marginLeft: '28px', display: 'inline' }}>Languages</div>
               </summary>
               <div className='mb-6 mt-6' style={{ marginLeft: '24px' }}>
                 <Select
@@ -781,16 +780,16 @@ function App() {
                       ...base,
                       padding: 0
                     }),
-                    control: (base, state) => ({
+                    control: (base) => ({
                       ...base,
                       fontSize: '14px',
                       borderColor: 'transparent',
                       backgroundColor: 'var(--color-gray-100)',
                       padding: 16,
-                      boxShadow: state.isFocused ? '0 0 0 1px var(--orange)' : 'none',
+                      boxShadow: 'none',
                       borderRadius: '8px',
                       '&:hover': {
-                        backgroundColor: 'rgba(21, 21, 21, 0.1)'
+                        backgroundColor: 'var(--hover-gray)'
                       }
                     }),
                     input: (base) => ({
@@ -813,14 +812,12 @@ function App() {
                       ...base,
                       fontSize: '14px',
                       textAlign: 'left',
-                      backgroundColor: state.isFocused ? 'rgba(21, 21, 21, 0.1)' : base.backgroundColor,
+                      backgroundColor: state.isFocused ? 'var(--hover-gray)' : base.backgroundColor,
                       color: base.color,
                     }),
                     multiValue: (base) => ({
                       ...base,
                       fontSize: '14px',
-                      backgroundColor: 'var(--lighter-purple)',
-                      color: 'var(--purple)',
                       borderRadius: '9999px',
                       margin: '2px 4px',
                       marginBottom: '6px',
@@ -848,8 +845,8 @@ function App() {
                       '&::after': {
                         content: '""',
                         display: 'block',
-                        width: '21px',
-                        height: '21px',
+                        width: '24px',
+                        height: '24px',
                         margin: '0 0 1px 0',
                         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1' stroke='%23a3a3a3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 18 18 6M6 6l12 12' /%3E%3C/svg%3E")`,
                         backgroundSize: 'contain',
@@ -891,7 +888,7 @@ function App() {
                         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 28 28' stroke-width='1' stroke='%23db0000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M7 7l14 14M21 7l-14 14' /%3E%3C/svg%3E")`
                       }
                     }),
-                    dropdownIndicator: (base) => ({
+                    dropdownIndicator: (base, state) => ({
                       ...base,
                       color: 'var(--color-gray-400)',
                       cursor: 'pointer',
@@ -911,7 +908,8 @@ function App() {
                         backgroundSize: 'contain',
                         backgroundRepeat: 'no-repeat',
                         backgroundPosition: 'center',
-                        transition: 'background-image 0.2s'
+                        transition: 'background-image 0.2s, transform 0.2s ease',
+                        transform: state.selectProps.menuIsOpen ? 'rotate(180deg)' : 'rotate(0deg)'
                       },
                       ':hover::after': {
                         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1' stroke='%23151515'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E")`
@@ -927,7 +925,7 @@ function App() {
             <hr className='assets-divider' />
                         <details open>
               <summary className='text-[16px] text-left font-bold cursor-pointer'>
-                <div style={{ marginLeft: '12px', display: 'inline' }}>Overview</div>
+                <div style={{ marginLeft: '28px', display: 'inline' }}>Overview</div>
               </summary>
               {selectedLanguages.length === 0 ? (
                 <div
@@ -962,7 +960,7 @@ function App() {
                     background: 'none',
                     color: 'var(--lighter-black)',
                     borderRadius: '8px',
-                    border: '1px solid var(--color-gray-300)',
+                    border: '1px solid var(--color-gray-400)',
                     padding: '12px 20px',
                     fontSize: '14px',
                     fontWeight: 500,
@@ -978,7 +976,7 @@ function App() {
                     <span style={{ minWidth: '243.5px', textAlign: 'left' }}>Total assets</span>
                     <strong style={{ color: 'var(--purple)' }}>{filteredAssets?.length ?? 0}</strong>
                   </div>
-                  <hr className='assets-divider' />
+                  <hr className='assets-divider within-container' />
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                     <span style={{ minWidth: '225px', textAlign: 'left' }}>
                       Described in all selected languages
@@ -1048,10 +1046,10 @@ function App() {
             {/* Main Asset Table Section */}
             <details open>
               <summary id='assets-summary' className='text-[16px] text-left font-bold cursor-pointer'>
-                <div style={{ marginLeft: '12px', display: 'inline' }}>Asset details</div>
+                <div style={{ marginLeft: '28px', display: 'inline' }}>Asset details</div>
               </summary>
               {/* Search input and filter controls moved here, above the main asset table */}
-              <div className='mb-6 mt-4' style={{ marginLeft: '24px' }}>
+              <div className='mb-16 mt-4' style={{ marginLeft: '24px' }}>
                 <div className='mb-4'>
                   <div className='search-input-wrapper' style={{ position: 'relative', width: '100%' }}>
                     <input
@@ -1060,7 +1058,7 @@ function App() {
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       className='search-input'
-                      style={{ width: '100%', height: '29px', padding: '3px 6px' }}
+                      style={{ width: '100%', height: '29px' }}
                     />
                     {searchQuery && (
                       <button
@@ -1091,7 +1089,7 @@ function App() {
                         onMouseEnter={e => (e.currentTarget.style.color = 'var(--red)')}
                         onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-gray-400)')}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="size-7">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" style={{ width: '24px', height: '24px' }}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                         </svg>
                       </button>
