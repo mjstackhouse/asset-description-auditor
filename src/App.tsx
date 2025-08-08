@@ -561,7 +561,21 @@ function App() {
   useEffect(() => {
     const summary = document.getElementById('assets-summary');
     if (summary) {
-      summary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Check for reduced motion preference for better accessibility
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const scrollBehavior = prefersReducedMotion ? 'auto' : 'smooth';
+      
+      summary.scrollIntoView({ behavior: scrollBehavior, block: 'start' });
+    }
+    
+    // Also scroll the table container back to the top when page changes
+    const tableContainer = tableContainerRef.current;
+    if (tableContainer) {
+      // Check for reduced motion preference for better accessibility
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const scrollBehavior = prefersReducedMotion ? 'auto' : 'smooth';
+      
+      tableContainer.scrollTo({ top: 0, behavior: scrollBehavior });
     }
   }, [currentPage]);
 
